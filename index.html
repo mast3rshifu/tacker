@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Package Dashboard</title>
+<style>
+:root{--bg:#eef1f4;--panel:#fff;--ink:#17202a;--mute:#5d6b79;--line:#d6dce2;--ups:#5a3a1a;--fedex:#4d148c;--fedex2:#e8590c;--ok:#1f7a4d;--warn:#b42318;--go:#17202a;--gofg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12171c;--panel:#1b222a;--ink:#e8edf2;--mute:#94a3b1;--line:#2e3944;--ups:#d9a566;--fedex:#b48cf0;--fedex2:#ff9a5c;--ok:#5fd39b;--warn:#ff8a80;--go:#e8edf2;--gofg:#12171c}}
+:root[data-theme="dark"]{--bg:#12171c;--panel:#1b222a;--ink:#e8edf2;--mute:#94a3b1;--line:#2e3944;--ups:#d9a566;--fedex:#b48cf0;--fedex2:#ff9a5c;--ok:#5fd39b;--warn:#ff8a80;--go:#e8edf2;--gofg:#12171c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 20px}
+.add{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.add .full{grid-column:1/-1}
+label{display:grid;gap:4px;font-size:.85rem;color:var(--mute)}
+input,select,button{font:inherit;color:inherit}
+input,select{padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--fedex);outline-offset:2px}
+.hint{font-size:.85rem;min-height:1.3em;color:var(--mute)}
+.hint.err{color:var(--warn)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:9px 14px}
+button.go{background:var(--go);color:var(--gofg);border-color:var(--go);font-weight:700}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 10px}
+.bar button[aria-pressed="true"]{background:var(--go);color:var(--gofg);border-color:var(--go)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+li{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--mute);border-radius:8px;padding:14px;display:grid;gap:8px}
+li.UPS{border-left-color:var(--ups)}li.FedEx{border-left-color:var(--fedex)}
+li.done{opacity:.65}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.name{font-weight:700;font-size:1.05rem}
+.num{font-family:Consolas,Menlo,monospace;font-size:.9rem;color:var(--mute);word-break:break-all}
+.car{font-weight:700;font-size:.85rem}
+li.UPS .car{color:var(--ups)}li.FedEx .car{color:var(--fedex)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row select{width:auto;padding:7px}
+a.track{background:var(--go);color:var(--gofg);text-decoration:none;padding:9px 14px;border-radius:6px;font-weight:700}
+.st-Delivered{color:var(--ok)}.st-Problem{color:var(--warn)}
+.empty{text-align:center;color:var(--mute);padding:28px 8px;border:1px dashed var(--line);border-radius:8px}
+.note{margin-top:28px;font-size:.85rem;color:var(--mute)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.tile b{display:block;font-size:1.7rem;line-height:1.1}
+.tile span{font-size:.82rem;color:var(--mute)}
+.tile.bad b{color:var(--warn)}.tile.good b{color:var(--ok)}
+#dests{margin-top:12px;font-size:.9rem;color:var(--mute)}
+#dests strong{color:var(--ink)}
+.steps{display:flex;gap:4px}
+.steps i{flex:1;height:7px;border-radius:4px;background:var(--line)}
+.steps i.on{background:var(--ok)}
+.steps.bad i{background:var(--warn)}
+.stlabel{font-size:.85rem;font-weight:700}
+.dest{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dest input{flex:1;min-width:170px;padding:7px}
+a.map{font-size:.85rem;color:var(--fedex)}
+@media(max-width:520px){.add{grid-template-columns:1fr}.tiles{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:no-preference){li{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Package dashboard</h1>
+<p class="sub">See where every UPS and FedEx package stands and where it is headed.</p>
+
+<div class="add">
+  <label class="full">Tracking number
+    <input id="num" autocomplete="off" placeholder="1Z999AA10123456784 or 123456789012">
+  </label>
+  <label>Nickname (optional)
+    <input id="nick" placeholder="Running shoes">
+  </label>
+  <label>Carrier
+    <select id="car"><option value="auto">Detect automatically</option><option>UPS</option><option>FedEx</option></select>
+  </label>
+  <label class="full">Delivering to (city or address)
+    <input id="dest" placeholder="Home, or 123 Main St, Springfield">
+  </label>
+  <div class="full hint" id="hint" role="status"></div>
+  <div class="full"><button class="go" id="addBtn">Add package</button></div>
+</div>
+
+<div class="tiles" id="tiles"></div>
+<div id="dests"></div>
+
+<div class="bar" role="group" aria-label="Filter packages">
+  <button data-f="active" aria-pressed="true">Active</button>
+  <button data-f="Delivered" aria-pressed="false">Delivered</button>
+  <button data-f="all" aria-pressed="false">All</button>
+</div>
+
+<ul id="list"></ul>
+
+<p class="note">Status and destination are entered by you. Use Track to see the carrier's live status. Your list is saved in this browser only.</p>
+</main>
+
+<script>
+const KEY="pkgs-v1";
+let pkgs=[],filter="active";
+try{pkgs=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){pkgs=[]}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(pkgs))}catch(e){}};
+const STATUSES=["Label created","In transit","Out for delivery","Delivered","Problem"];
+
+function clean(s){return s.replace(/[\s-]/g,"").toUpperCase()}
+function detect(n){
+  if(/^1Z[0-9A-Z]{16}$/.test(n))return"UPS";
+  if(/^(\d{12}|\d{15}|\d{20}|\d{22})$/.test(n))return"FedEx";
+  return null;
+}
+function url(p){
+  const n=encodeURIComponent(p.num);
+  return p.car==="UPS"?"https://www.ups.com/track?tracknum="+n:"https://www.fedex.com/fedextrack/?trknbr="+n;
+}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function add(){
+  const n=clean($("num").value),hint=$("hint");
+  hint.className="hint";
+  if(!n){hint.textContent="Enter a tracking number.";hint.className="hint err";return}
+  let car=$("car").value;
+  const d=detect(n);
+  if(car==="auto"){
+    if(!d){hint.textContent="Carrier not recognized. UPS numbers start with 1Z; FedEx numbers are 12, 15, 20 or 22 digits. Choose a carrier above.";hint.className="hint err";return}
+    car=d;
+  }
+  if(pkgs.some(p=>p.num===n)){hint.textContent="That number is already in your list.";hint.className="hint err";return}
+  pkgs.unshift({id:Date.now(),num:n,car,nick:$("nick").value.trim(),dest:$("dest").value.trim(),status:"In transit",updated:Date.now()});
+  save();
+  $("num").value="";$("nick").value="";$("dest").value="";$("car").value="auto";
+  hint.textContent="Added as "+car+".";
+  render();$("num").focus();
+}
+
+function steps(st){
+  const i=["Label created","In transit","Out for delivery","Delivered"].indexOf(st);
+  if(st==="Problem")return'<div class="steps bad" aria-hidden="true"><i></i><i></i><i></i><i></i></div>';
+  return'<div class="steps" aria-hidden="true">'+[0,1,2,3].map(n=>'<i class="'+(n<=i?"on":"")+'"></i>').join("")+'</div>';
+}
+function summary(){
+  const c=s=>pkgs.filter(p=>s.includes(p.status)).length;
+  const t=[["In transit",c(["Label created","In transit"]),""],["Out for delivery",c(["Out for delivery"]),""],["Delivered",c(["Delivered"]),"good"],["Problem",c(["Problem"]),c(["Problem"])?"bad":""]];
+  $("tiles").innerHTML=t.map(x=>`<div class="tile ${x[2]}"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+  const g={};
+  pkgs.filter(p=>p.status!=="Delivered").forEach(p=>{const d=p.dest||"No destination set";g[d]=(g[d]||0)+1});
+  const k=Object.keys(g);
+  $("dests").innerHTML=k.length?"Arriving at: "+k.map(d=>`<strong>${esc(d)}</strong> (${g[d]})`).join(", "):"";
+}
+function render(){
+  summary();
+  const list=$("list");
+  const shown=pkgs.filter(p=>filter==="all"||(filter==="Delivered"?p.status==="Delivered":p.status!=="Delivered"));
+  if(!shown.length){
+    list.innerHTML='<li class="empty" style="display:block;border-left-color:var(--line)">'+(pkgs.length?"Nothing in this view.":"No packages yet. Paste a tracking number above to add one.")+'</li>';
+    return;
+  }
+  list.innerHTML=shown.map(p=>`
+  <li class="${p.car} ${p.status==="Delivered"?"done":""}">
+    <div class="top"><span class="name">${esc(p.nick||p.num)}</span><span class="car">${p.car}</span></div>
+    ${p.nick?`<div class="num">${esc(p.num)}</div>`:""}
+    ${steps(p.status)}
+    <div class="stlabel st-${p.status.split(" ")[0]}">${p.status}</div>
+    <div class="dest">
+      <input data-dest="${p.id}" value="${esc(p.dest||"")}" placeholder="Delivering to…" aria-label="Delivery location for ${esc(p.nick||p.num)}">
+      ${p.dest?`<a class="map" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.dest)}" target="_blank" rel="noopener noreferrer">View on map</a>`:""}
+    </div>
+    <div class="row">
+      <a class="track" href="${url(p)}" target="_blank" rel="noopener noreferrer">Track on ${p.car}</a>
+      <select data-id="${p.id}" aria-label="Status for ${esc(p.nick||p.num)}" class="st-${p.status.split(" ")[0]}">
+        ${STATUSES.map(s=>`<option${s===p.status?" selected":""}>${s}</option>`).join("")}
+      </select>
+      <button data-del="${p.id}" aria-label="Remove ${esc(p.nick||p.num)}">Remove</button>
+    </div>
+  </li>`).join("");
+}
+
+$("addBtn").onclick=add;
+$("num").addEventListener("keydown",e=>{if(e.key==="Enter")add()});
+$("list").addEventListener("change",e=>{
+  const id=+e.target.dataset.id;if(!id)return;
+  const p=pkgs.find(x=>x.id===id);if(p){p.status=e.target.value;save();render()}
+});
+$("list").addEventListener("change",e=>{
+  const id=+e.target.dataset.dest;if(!id)return;
+  const p=pkgs.find(x=>x.id===id);if(p){p.dest=e.target.value.trim();save();render()}
+});
+$("list").addEventListener("click",e=>{
+  const id=+e.target.dataset.del;if(!id)return;
+  pkgs=pkgs.filter(x=>x.id!==id);save();render();
+});
+document.querySelector(".bar").addEventListener("click",e=>{
+  const f=e.target.dataset.f;if(!f)return;
+  filter=f;
+  document.querySelectorAll(".bar button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===f));
+  render();
+});
+render();
+</script>
+</body>
+</html>
